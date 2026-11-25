@@ -4,8 +4,6 @@
 
 一款給**藥局候藥患者**玩的 3 分鐘衛教小遊戲。玩家扮演社區藥師，在倒數計時內照處方拿藥、決定要不要當面核對、要不要多問一句用藥習慣，並從結局中學到領藥時可以怎麼保護自己。
 
-**▶ 線上遊玩：<https://alex4605.github.io/SRPhPtEduGame01/>**
-
 | 標題畫面 | 數藥、剪藥排 | 用藥提醒 |
 |:---:|:---:|:---:|
 | <img src="docs/screenshots/menu.webp" width="240" alt="標題畫面"> | <img src="docs/screenshots/dispense.webp" width="240" alt="在藥排抽屜中拿 1 排加剪 13 顆，共 28 顆"> | <img src="docs/screenshots/consult.webp" width="240" alt="藥師發現鈣片會影響甲狀腺藥吸收"> |
