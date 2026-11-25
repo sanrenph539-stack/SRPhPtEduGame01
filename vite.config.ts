@@ -16,6 +16,9 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0',
+    port: 3000,
+    allowedHosts: true,
     // Set DISABLE_HMR=true to turn off HMR and file watching (e.g. in hosted editors).
     hmr: process.env.DISABLE_HMR !== 'true',
     watch: process.env.DISABLE_HMR === 'true' ? null : {},

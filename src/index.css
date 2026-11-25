@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
-/* 候藥區長輩閱讀：整體字級比 Tailwind 預設放大一級（12→14、14→16、16→17px） */
 @theme {
-  --text-xs: 0.875rem;
-  --text-xs--line-height: 1.45;
-  --text-sm: 1rem;
-  --text-sm--line-height: 1.55;
-  --text-base: 1.0625rem;
-  --text-base--line-height: 1.6;
-  --text-lg: 1.1875rem;
-  --text-xl: 1.3125rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.35;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.4;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.35;
 }
 
 @layer base {
@@ -19,6 +20,7 @@
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
     /* Normal Mode: Warm Taiwanese community pharmacy morning palette (60-30-10) */
+    --bg-outer: #E7E1D5;
     --bg-canvas: #F9F6F0;
     --bg-surface: #FFFFFF;
     --bg-muted: #EFEAE0;
@@ -39,6 +41,7 @@
 
   [data-theme="hard"] {
     /* Hard Mode: Rainy evening fluorescent pharmacy realism (60-30-10) */
+    --bg-outer: #D5DCE6;
     --bg-canvas: #EAEEF3;
     --bg-surface: #FAFBFD;
     --bg-muted: #DFE5EE;
@@ -57,9 +60,15 @@
     --shelf-shadow: #A3B1C4;
   }
 
+  html,
+  body {
+    height: 100%;
+    overscroll-behavior-y: contain;
+  }
+
   body {
     font-family: var(--font-sans);
-    background-color: var(--bg-canvas);
+    background-color: var(--bg-outer);
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

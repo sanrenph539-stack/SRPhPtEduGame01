@@ -36,18 +36,18 @@ export function AlmanacModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-[2px] p-0 sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="almanac-title"
       onClick={onClose}
     >
       <div
-        className="animate-sheet-up w-full sm:max-w-2xl max-h-[88vh] rounded-t-3xl sm:rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] flex flex-col overflow-hidden shadow-xl"
+        className="animate-sheet-up w-full max-w-[430px] max-h-[88dvh] rounded-t-3xl bg-[var(--bg-surface)] border-t border-x border-[var(--border-subtle)] flex flex-col overflow-hidden shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sm:hidden pt-3 pb-1 flex justify-center">
-          <div className="w-10 h-1.5 rounded-full bg-[var(--border-strong)]" />
+        <div className="pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="w-10 h-1 rounded-full bg-[var(--border-strong)]" />
         </div>
 
         <div className="px-4 sm:px-6 py-4 border-b border-[var(--border-subtle)] bg-[var(--bg-paper)] flex items-center justify-between gap-3">

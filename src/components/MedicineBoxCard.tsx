@@ -3,18 +3,18 @@ import { DrugSpec } from '../types/game';
 
 interface MedicineBoxCardProps {
   drug: DrugSpec;
+  slotCode?: string;
   selected?: boolean;
   pickedCount?: number;
-  compact?: boolean;
   outOfStock?: boolean;
   onClick?: () => void;
 }
 
 export const MedicineBoxCard = memo(function MedicineBoxCard({
   drug,
+  slotCode,
   selected = false,
   pickedCount = 0,
-  compact = false,
   outOfStock = false,
   onClick,
 }: MedicineBoxCardProps) {
@@ -23,66 +23,62 @@ export const MedicineBoxCard = memo(function MedicineBoxCard({
       type="button"
       disabled={outOfStock}
       onClick={outOfStock ? undefined : onClick}
-      className={`group relative w-full text-left rounded-xl border transition-all duration-150 select-none overflow-hidden ${
-        compact ? 'min-h-[84px]' : 'min-h-[92px]'
-      } ${
+      className={`group relative w-full text-left rounded-xl border transition-all duration-150 select-none overflow-hidden min-h-[64px] ${
         outOfStock
-          ? 'border-dashed border-[var(--border-strong)] bg-[var(--bg-muted)]/75 opacity-70 cursor-not-allowed'
+          ? 'border-dashed border-[var(--border-strong)] bg-[var(--bg-muted)]/75 opacity-75 cursor-not-allowed'
           : selected
-            ? 'border-[var(--accent-primary)] ring-2 ring-[var(--accent-primary)]/30 bg-[var(--bg-surface)] -translate-y-0.5 shadow-[0_5px_0_rgba(27,37,47,0.16)]'
-            : 'border-[#CFC8BA] bg-[#FDFCF9] hover:bg-white hover:-translate-y-0.5 shadow-[0_3px_0_rgba(27,37,47,0.12)] active:translate-y-0.5 active:shadow-[0_1px_0_rgba(27,37,47,0.12)]'
+            ? 'border-[var(--accent-primary)] ring-2 ring-[var(--accent-primary)]/35 bg-[var(--bg-surface)] -translate-y-0.5 shadow-[0_3px_0_rgba(27,37,47,0.16)]'
+            : 'border-[#CFC8BA] bg-[#FDFCF9] hover:bg-white shadow-[0_2px_0_rgba(27,37,47,0.12)] active:translate-y-0.5 active:shadow-none'
       }`}
     >
-      {/* Top folded cardboard box flap & color band */}
+      {/* Top folded cardboard box flap & color band with slot code */}
       <div
-        className={`h-3 w-full flex items-center justify-between px-2.5 border-b border-black/10 ${
-          outOfStock ? 'grayscale opacity-45' : ''
+        className={`h-5 w-full flex items-center justify-between px-2 border-b border-black/10 text-[10px] font-mono-num font-bold text-white/95 ${
+          outOfStock ? 'grayscale opacity-50' : ''
         }`}
         style={{ backgroundColor: drug.bandColor }}
       >
-        <span className="w-7 h-0.5 rounded-full bg-white/55" />
-        <span className="w-2 h-0.5 rounded-full bg-white/55" />
+        <span className="truncate">{slotCode ?? drug.defaultShelfCode}</span>
+        <span className="whitespace-nowrap shrink-0">
+          {outOfStock ? '缺貨' : `${drug.packSize}顆/排`}
+        </span>
       </div>
 
       {/* Box front face */}
-      <div className={compact ? 'px-2.5 py-2' : 'p-3'}>
-        <div className="flex items-start justify-between gap-1.5">
+      <div className="px-2 py-1.5 space-y-1">
+        <div className="flex items-baseline justify-between gap-1">
           <span
-            className={`text-[17px] font-bold leading-tight truncate ${
+            className={`text-sm font-bold leading-tight truncate ${
               outOfStock ? 'text-[#6B7280] line-through' : 'text-[#1B252F]'
             }`}
           >
             {drug.name}
           </span>
-          <span className="font-mono-num text-xs text-[#3D4B59] whitespace-nowrap shrink-0">
-            {outOfStock ? '缺貨中' : `${drug.packSize}顆/排`}
-          </span>
+          {!outOfStock && pickedCount > 0 && (
+            <span className="font-mono-num text-[11px] font-bold text-[var(--accent-primary)] whitespace-nowrap shrink-0">
+              已拿 {pickedCount}
+            </span>
+          )}
         </div>
 
         {/* Distinct dosage imprint band */}
         <div
-          className={`mt-2 px-2 py-1 rounded-md border border-black/8 flex items-center justify-between gap-1 ${
+          className={`px-2 py-0.5 rounded-md border border-black/8 flex items-center justify-between gap-1 ${
             outOfStock ? 'bg-[#DDD8CE]' : ''
           }`}
           style={outOfStock ? undefined : { backgroundColor: drug.bandAccent }}
         >
           <span
-            className={`font-mono-num text-sm sm:text-[17px] font-bold ${
+            className={`font-mono-num text-sm font-bold leading-tight ${
               outOfStock ? 'text-[#6B7280]' : 'text-[#161E28]'
             }`}
           >
             {drug.strength}
           </span>
-          {outOfStock ? (
-            <span className="text-xs font-bold text-[var(--status-warn)] whitespace-nowrap">
-              已缺貨
+          {outOfStock && (
+            <span className="text-[11px] font-bold text-[var(--status-warn)] whitespace-nowrap">
+              已開欠單
             </span>
-          ) : (
-            pickedCount > 0 && (
-              <span className="font-mono-num text-xs font-bold text-[var(--accent-primary)] whitespace-nowrap">
-                盤中 {pickedCount}
-              </span>
-            )
           )}
         </div>
       </div>

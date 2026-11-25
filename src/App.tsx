@@ -193,6 +193,7 @@ export default function App() {
   const [almanac, setAlmanac] = useState<UnlockedAlmanac>(loadAlmanac);
   const [almanacOpen, setAlmanacOpen] = useState(false);
 
+  const mainScrollRef = useRef<HTMLElement | null>(null);
   const deltaCounterRef = useRef(0);
   const statsRef = useRef(stats);
   statsRef.current = stats;
@@ -202,6 +203,10 @@ export default function App() {
 
   const trayRef = useRef(tray);
   trayRef.current = tray;
+
+  useEffect(() => {
+    mainScrollRef.current?.scrollTo({ top: 0 });
+  }, [screen, stage, patientIndex]);
 
   // Snapshot of stats & procurement pricing tier carried over from Normal Mode clear into Hard Mode
   const hardCarryStatsRef = useRef<CoreStats>({ ...INITIAL_STATS });
@@ -812,62 +817,82 @@ export default function App() {
   );
 
   return (
-    <div data-theme={themeAttr} className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)]">
-      {screen === 'MENU' && (
-        <TitleMenu
-          almanac={almanac}
-          onStartMode={(selected) => startGame(selected, false, selected === 'hard')}
-          onOpenAlmanac={() => setAlmanacOpen(true)}
-        />
-      )}
-
-      {screen === 'PLAYING' && (
-        <div className="min-h-screen flex flex-col">
-          <TopHud
-            mode={mode}
-            act={stageMeta.actNumber}
-            totalActs={totalActs}
-            patientIndex={patientIndex}
-            showPatientCount={showPatientCount}
-            stats={stats}
-            latestDelta={latestDelta}
-            timerActive={timerActive}
-            isPaused={isPaused}
-            remainingSec={remainingSec}
-            totalSec={timerLimitSec}
-            onTogglePause={handleTogglePause}
-            onReturnMenu={handleRequestReturnMenu}
+    <div
+      data-theme={themeAttr}
+      className="min-h-dvh w-full bg-[var(--bg-outer)] text-[var(--text-primary)] sm:flex sm:items-center sm:justify-center sm:py-3 sm:px-4"
+    >
+      <div className="w-full h-dvh sm:max-w-[430px] sm:h-[min(860px,calc(100dvh-24px))] sm:rounded-[28px] sm:border sm:border-[var(--border-strong)] sm:shadow-[0_20px_50px_rgba(27,37,47,0.14)] bg-[var(--bg-canvas)] overflow-hidden flex flex-col">
+        {screen === 'MENU' && (
+          <TitleMenu
+            almanac={almanac}
+            onStartMode={(selected) => startGame(selected, false, selected === 'hard')}
+            onOpenAlmanac={() => setAlmanacOpen(true)}
           />
+        )}
 
-          <main className="flex-1 w-full max-w-6xl mx-auto px-3.5 sm:px-6 py-4 sm:py-6">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-7 items-start">
-              {/* Left Column: Pharmacist-POV Interior Card, Dialogue & Prescription */}
-              <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-24">
+        {screen === 'PLAYING' && (
+          <div className="h-full flex flex-col min-h-0">
+            <TopHud
+              mode={mode}
+              act={stageMeta.actNumber}
+              totalActs={totalActs}
+              patientIndex={patientIndex}
+              showPatientCount={showPatientCount}
+              stats={stats}
+              latestDelta={latestDelta}
+              timerActive={timerActive}
+              isPaused={isPaused}
+              remainingSec={remainingSec}
+              totalSec={timerLimitSec}
+              onTogglePause={handleTogglePause}
+              onReturnMenu={handleRequestReturnMenu}
+            />
+
+            {stage === 'DISPENSE' ? (
+              <main className="flex-1 min-h-0 flex flex-col">
+                <Act3Dispensing
+                  key={`disp-${mode}-${patientIndex}`}
+                  mode={mode}
+                  patientName={activePatient.shortName}
+                  drugs={currentDrugs}
+                  prescriptionItems={activePatient.items}
+                  shortageNote={activeShortageNote}
+                  outOfStockDrugIds={activeOutOfStockDrugIds}
+                  tray={tray}
+                  timerActive={timerActive}
+                  isPaused={isPaused}
+                  remainingSec={remainingSec}
+                  totalSec={timerLimitSec}
+                  onTogglePause={handleTogglePause}
+                  onUpdateTray={handleUpdateTray}
+                  onRemoveFromTray={handleRemoveFromTray}
+                  onFinishDispensing={handleFinishDispensing}
+                />
+              </main>
+            ) : (
+              <main
+                ref={mainScrollRef}
+                className="flex-1 min-h-0 overflow-y-auto px-3 py-2.5 space-y-2.5"
+              >
+                {/* Compact Mobile Context & Dialogue Card */}
                 <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] overflow-hidden">
-                  {/* Show interior pharmacy illustration on desktop always, and on mobile during opening/intro stages */}
-                  <div
-                    className={`${
-                      stage === 'PROCURE' || stage === 'TRAP' ? 'block' : 'hidden lg:block'
-                    } relative aspect-[16/9] w-full overflow-hidden border-b border-[var(--border-subtle)]`}
-                  >
-                    <IllustrationImage
-                      src={mode === 'normal' ? GAME_ASSETS.pharmacyWarm : GAME_ASSETS.pharmacyHard}
-                      alt={
-                        mode === 'normal'
-                          ? '從社區藥局櫃檯內往外看的早晨場景'
-                          : '從社區藥局櫃檯內往外看的雨天傍晚場景'
-                      }
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black/65 to-transparent" />
-                    <span className="absolute bottom-2 left-3 text-[13px] font-medium text-white/95">
-                      {mode === 'normal' ? '早班調劑櫃檯內' : '雨天傍晚調劑櫃檯內'}
-                    </span>
-                  </div>
+                  {mode === 'hard' && stage === 'PROCURE' && (
+                    <div className="relative h-20 w-full overflow-hidden border-b border-[var(--border-subtle)]">
+                      <IllustrationImage
+                        src={GAME_ASSETS.pharmacyHard}
+                        alt="從社區藥局櫃檯內往外看的雨天傍晚場景"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/65 to-transparent" />
+                      <span className="absolute bottom-1.5 left-3 text-[11px] font-medium text-white/95">
+                        雨天傍晚調劑櫃檯內
+                      </span>
+                    </div>
+                  )}
 
-                  <div className={stage === 'DISPENSE' ? 'p-3.5 sm:p-4 space-y-2.5' : 'p-4 sm:p-5 space-y-3'}>
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-muted)] shrink-0">
+                  <div className="p-3 space-y-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-11 h-11 rounded-xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-muted)] shrink-0">
                         <IllustrationImage
                           src={stageMeta.portraitSrc}
                           alt={`${stageMeta.speaker}頭像`}
@@ -876,23 +901,19 @@ export default function App() {
                         />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-[var(--accent-primary)]">
+                        <p className="text-[11px] font-bold text-[var(--accent-primary)] truncate">
                           {stageMeta.title}
                         </p>
-                        <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)] leading-snug">
+                        <h2 className="text-sm font-bold text-[var(--text-primary)] leading-tight truncate">
                           {stageMeta.speaker}
                         </h2>
-                        <p className="text-xs text-[var(--text-secondary)] truncate">
+                        <p className="text-[11px] text-[var(--text-secondary)] truncate">
                           {stageMeta.subtitle}
                         </p>
                       </div>
                     </div>
 
-                    <p
-                      className={`text-sm sm:text-[17px] text-[var(--text-primary)] leading-relaxed pt-3 receipt-divider ${
-                        stage === 'DISPENSE' ? 'hidden sm:block' : ''
-                      }`}
-                    >
+                    <p className="text-xs sm:text-sm text-[var(--text-primary)] leading-relaxed pt-2 receipt-divider">
                       {stageMeta.dialogue}
                     </p>
                   </div>
@@ -909,23 +930,7 @@ export default function App() {
                     compactToggleable={true}
                   />
                 )}
-                {stage === 'DISPENSE' && (
-                  <div className="hidden lg:block">
-                    <PrescriptionCard
-                      patientName={activePatient.patientName}
-                      patientMeta={activePatient.patientMeta}
-                      rxNumber={activePatient.rxNumber}
-                      items={activePatient.items}
-                      shortageNote={activeShortageNote}
-                      defaultOpen={true}
-                      compactToggleable={false}
-                    />
-                  </div>
-                )}
-              </div>
 
-              {/* Right Column: Interactive Pharmacy Workbench */}
-              <div className="lg:col-span-7 pb-6">
                 {stage === 'PROCURE' && (
                   <Act1Procurement
                     mode={mode}
@@ -944,13 +949,13 @@ export default function App() {
                 )}
 
                 {stage === 'SHORTAGE' && (
-                  <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 sm:p-6 space-y-4 animate-stage-fade">
-                    <div className="flex items-start justify-between gap-2.5">
+                  <section className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3.5 space-y-3 animate-stage-fade">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-xs font-bold text-[var(--status-warn)]">
                           小量補貨 · 備藥不足
                         </p>
-                        <h3 className="mt-0.5 text-lg sm:text-xl font-bold text-[var(--text-primary)]">
+                        <h3 className="mt-0.5 text-base font-bold text-[var(--text-primary)]">
                           架上的「好壓降 160 mg」剛好缺藥了
                         </h3>
                       </div>
@@ -960,44 +965,24 @@ export default function App() {
                       />
                     </div>
 
-                    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-paper)] p-4 space-y-2.5 text-sm text-[var(--text-primary)] leading-relaxed">
+                    <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-paper)] p-3 space-y-1.5 text-xs text-[var(--text-primary)] leading-relaxed">
                       <p>
                         你向王阿北道歉，立刻開了「欠藥單」，約好明天補領好壓降 160 mg。他有點失望，但仍微笑著點頭道謝：
                       </p>
                       <p className="font-medium text-[var(--accent-primary)]">
-                        「沒關係啦藥師，知道你們小藥局備貨也不容易，謝謝你幫我叫貨！今天先幫我拿架上有的好會降 10 mg 就好，好壓降我明天再來領！」
+                        「沒關係啦藥師，知道你們小藥局備貨也不容易！今天先幫我拿好會降 10 mg 就好！」
                       </p>
                     </div>
 
                     <button
                       type="button"
                       onClick={handleCompleteShortage}
-                      className="w-full min-h-[52px] px-4 sm:px-5 py-3 rounded-xl bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] active:scale-[0.99] text-white text-sm sm:text-base font-bold text-center leading-snug transition-all flex items-center justify-center gap-2"
+                      className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-[var(--accent-primary)] hover:bg-[var(--accent-primary-hover)] active:scale-[0.99] text-white text-sm font-bold text-center transition-all flex items-center justify-center gap-2"
                     >
                       <span>先拿「好會降 10 mg 14 顆」（好感 -5）</span>
                       <ArrowRight className="w-4 h-4 shrink-0" aria-hidden="true" />
                     </button>
                   </section>
-                )}
-
-                {stage === 'DISPENSE' && (
-                  <Act3Dispensing
-                    key={`disp-${mode}-${patientIndex}`}
-                    mode={mode}
-                    drugs={currentDrugs}
-                    prescriptionItems={activePatient.items}
-                    shortageNote={activeShortageNote}
-                    outOfStockDrugIds={activeOutOfStockDrugIds}
-                    tray={tray}
-                    timerActive={timerActive}
-                    isPaused={isPaused}
-                    remainingSec={remainingSec}
-                    totalSec={timerLimitSec}
-                    onTogglePause={handleTogglePause}
-                    onUpdateTray={handleUpdateTray}
-                    onRemoveFromTray={handleRemoveFromTray}
-                    onFinishDispensing={handleFinishDispensing}
-                  />
                 )}
 
                 {stage === 'DELIVER' && (
@@ -1018,13 +1003,13 @@ export default function App() {
                 )}
 
                 {stage === 'COMPLAINT' && (
-                  <section className="rounded-2xl border border-[var(--status-danger)]/50 bg-[var(--bg-surface)] p-4 sm:p-6 space-y-4 animate-stage-fade">
-                    <div className="flex items-start justify-between gap-2.5">
+                  <section className="rounded-2xl border border-[var(--status-danger)]/50 bg-[var(--bg-surface)] p-3.5 space-y-3 animate-stage-fade">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-xs font-bold text-[var(--status-danger)]">
                           未當面核對 · 百口莫辯
                         </p>
-                        <h3 className="mt-0.5 text-lg sm:text-xl font-bold text-[var(--text-primary)]">
+                        <h3 className="mt-0.5 text-base font-bold text-[var(--text-primary)]">
                           陳阿姨說你「少給她一排」！
                         </h3>
                       </div>
@@ -1034,14 +1019,14 @@ export default function App() {
                       />
                     </div>
 
-                    <div className="rounded-xl bg-[#FDF3F2] border border-[var(--status-danger)]/25 p-4 text-sm text-[#7F1D1D] leading-relaxed">
+                    <div className="rounded-xl bg-[#FDF3F2] border border-[var(--status-danger)]/25 p-3 text-xs text-[#7F1D1D] leading-relaxed">
                       給藥時沒有當面核對，說不清楚，只好自己貼錢補發一排（現金 -{HARD_MISSING_STRIP_PENALTY_MONEY}、好感 -{HARD_MISSING_STRIP_PENALTY_AFFECTION}）。
                     </div>
 
                     <button
                       type="button"
                       onClick={handleAcceptMissingStripComplaint}
-                      className="w-full min-h-[52px] px-4 sm:px-5 py-3 rounded-xl bg-[var(--status-danger)] hover:opacity-95 active:scale-[0.99] text-white text-sm sm:text-base font-bold text-center leading-snug transition-all flex items-center justify-center gap-2"
+                      className="w-full min-h-[48px] px-4 py-2.5 rounded-xl bg-[var(--status-danger)] hover:opacity-95 active:scale-[0.99] text-white text-sm font-bold text-center transition-all flex items-center justify-center gap-2"
                     >
                       <span>
                         貼錢補發一排（現金 -{HARD_MISSING_STRIP_PENALTY_MONEY} · 好感 -
@@ -1069,25 +1054,25 @@ export default function App() {
                     onHardP2Complete={handleHardP2Complete}
                   />
                 )}
-              </div>
-            </div>
-          </main>
-        </div>
-      )}
+              </main>
+            )}
+          </div>
+        )}
 
-      {screen === 'ENDING' && endingId && (
-        <EndingScreen
-          mode={mode}
-          endingId={endingId}
-          stats={stats}
-          flags={flags}
-          almanac={almanac}
-          onReplaySameMode={() => startGame(mode, false)}
-          onSwitchMode={(nextMode) => startGame(nextMode, nextMode === 'hard')}
-          onOpenAlmanac={() => setAlmanacOpen(true)}
-          onReturnMenu={handleReturnMenu}
-        />
-      )}
+        {screen === 'ENDING' && endingId && (
+          <EndingScreen
+            mode={mode}
+            endingId={endingId}
+            stats={stats}
+            flags={flags}
+            almanac={almanac}
+            onReplaySameMode={() => startGame(mode, false)}
+            onSwitchMode={(nextMode) => startGame(nextMode, nextMode === 'hard')}
+            onOpenAlmanac={() => setAlmanacOpen(true)}
+            onReturnMenu={handleReturnMenu}
+          />
+        )}
+      </div>
 
       {/* Waiting-Room Pause Overlay (sits above dispensing drawer) */}
       {screen === 'PLAYING' && isPaused && !confirmReturnOpen && (
